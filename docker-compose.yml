@@ -39,7 +39,6 @@ services:
       - LOGS_DIR=${LOGS_DIR:-/app/logs}
       
       # Security
-      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here-change-in-production}
       - TOKEN_EXPIRY_HOURS=${TOKEN_EXPIRY_HOURS:-8760}
       
       # Rate limiting

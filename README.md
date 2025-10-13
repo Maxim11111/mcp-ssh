@@ -32,7 +32,7 @@ cp config/servers.json.example config/servers.json
 cp config/tokens.json.example config/tokens.json
 
 # Copy environment configuration
-cp .env.example .env
+cp env.example .env
 
 # Edit .env file to customize settings (optional)
 # nano .env
@@ -87,8 +87,7 @@ Add to `~/.cursor/mcp.json`:
 {
   "mcpServers": {
     "ssh-devops": {
-      "url": "http://your-server:8000/mcp/v1",
-      "transport": "sse",
+      "url": "http://your-server:8000/mcp",
       "headers": {
         "Authorization": "Bearer tok_your_token_here"
       }
@@ -113,8 +112,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 {
   "mcpServers": {
     "ssh-devops": {
-      "url": "http://your-server:8000/mcp/v1",
-      "transport": "sse",
+      "url": "http://your-server:8000/mcp",
       "headers": {
         "Authorization": "Bearer tok_your_token_here"
       }
@@ -172,11 +170,11 @@ python -m src.cli token revoke tok_abc123
 
 ### Environment Variables (.env)
 
-The server can be configured using environment variables. Copy `.env.example` to `.env` and customize:
+The server can be configured using environment variables. Copy `env.example` to `.env` and customize:
 
 ```bash
 # Copy example configuration
-cp .env.example .env
+cp env.example .env
 
 # Edit configuration
 nano .env
@@ -191,7 +189,6 @@ PORT=8000                       # Internal container port
 EXTERNAL_PORT=8000              # External Docker host port
 
 # Security
-SECRET_KEY=your-secret-key      # Change in production!
 TOKEN_EXPIRY_HOURS=8760        # Token validity period
 
 # Rate Limiting
@@ -320,7 +317,7 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for production deployment guide.
 
 ## Environment Variables
 
-All configuration can be managed via `.env` file. See `.env.example` for all available options:
+All configuration can be managed via `.env` file. See `env.example` for all available options:
 
 ```bash
 # Server Configuration
@@ -335,7 +332,6 @@ KEYS_DIR=/app/keys        # SSH keys directory
 LOGS_DIR=/app/logs        # Logs directory
 
 # Security Settings
-SECRET_KEY=your-secret-key # Change in production!
 TOKEN_EXPIRY_HOURS=8760   # Token validity period
 
 # Rate Limiting

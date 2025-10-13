@@ -277,7 +277,6 @@ EXTERNAL_PORT=8000
 LOG_LEVEL=INFO
 
 # Security (CHANGE THESE!)
-SECRET_KEY=your-super-secure-secret-key-here
 TOKEN_EXPIRY_HOURS=8760
 
 # Rate Limiting
@@ -297,10 +296,9 @@ RELOAD=false
 
 ### Security Considerations
 
-1. **Change SECRET_KEY**: Generate a strong secret key for production
-2. **Adjust Rate Limits**: Set appropriate limits for your environment
-3. **Configure Timeouts**: Adjust SSH timeouts based on network conditions
-4. **Use HTTPS**: Always use HTTPS in production (via nginx-proxy-manager)
+1. **Adjust Rate Limits**: Set appropriate limits for your environment
+2. **Configure Timeouts**: Adjust SSH timeouts based on network conditions
+3. **Use HTTPS**: Always use HTTPS in production (via nginx-proxy-manager)
 
 ### Port Configuration
 
