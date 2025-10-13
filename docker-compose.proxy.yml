@@ -2,8 +2,6 @@
 # Use this file when running behind a reverse proxy (nginx-proxy-manager, traefik, etc.)
 # Usage: docker-compose -f docker-compose.yml -f docker-compose.proxy.yml up -d
 
-version: '3.8'
-
 services:
   mcp-ssh-server:
     # Remove port mapping when using reverse proxy
