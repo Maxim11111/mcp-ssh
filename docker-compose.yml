@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  mcp-ssh-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mcp-ssh-server:latest
+    container_name: mcp-ssh-server
+    restart: unless-stopped
+    
+    ports:
+      - "8000:8000"
+    
+    volumes:
+      # Source code (for development without rebuilds)
+      - ./src:/app/src
+      
+      # Configuration files (read-write for management)
+      - ./config:/app/config
+      
+      # SSH keys (read-write for CLI to generate keys)
+      - ./keys:/app/keys
+      
+      # Logs (persistent)
+      - ./logs:/app/logs
+      
+      # Optional: Custom entrypoint
+      # - ./docker/entrypoint.sh:/entrypoint.sh:ro
+    
+    environment:
+      # Server settings
+      - HOST=0.0.0.0
+      - PORT=8000
+      - LOG_LEVEL=INFO
+      
+      # Paths
+      - CONFIG_DIR=/app/config
+      - KEYS_DIR=/app/keys
+      - LOGS_DIR=/app/logs
+      
+      # Rate limiting
+      - RATE_LIMIT_ENABLED=true
+      - RATE_LIMIT_PER_MINUTE=60
+      - RATE_LIMIT_PER_HOUR=500
+      
+      # SSH key passphrases (if needed)
+      # - PROD_SSH_PASSPHRASE=${PROD_SSH_PASSPHRASE}
+      # - TEST_SSH_PASSPHRASE=${TEST_SSH_PASSPHRASE}
+    
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    
+    # Network
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge
+
+# Optional: Add nginx reverse proxy for HTTPS
+# Uncomment if you want to use nginx-proxy-manager or similar
+#
+# services:
+#   nginx-proxy:
+#     image: jwilder/nginx-proxy
+#     ports:
+#       - "80:80"
+#       - "443:443"
+#     volumes:
+#       - /var/run/docker.sock:/tmp/docker.sock:ro
+#       - ./nginx/certs:/etc/nginx/certs
+#       - ./nginx/vhost.d:/etc/nginx/vhost.d
+#       - ./nginx/html:/usr/share/nginx/html
+#     networks:
+#       - mcp-network
+

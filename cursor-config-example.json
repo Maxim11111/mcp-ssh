@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "ssh-devops": {
+      "url": "http://localhost:8000/mcp",
+      "headers": {
+        "Authorization": "Bearer tok_example_cursor_admin_abc123"
+      }
+    }
+  }
+}
+
