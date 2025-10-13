@@ -9,8 +9,9 @@ services:
     container_name: mcp-ssh-server
     restart: unless-stopped
     
+    # Port mapping - can be disabled for reverse proxy setups
     ports:
-      - "8000:8000"
+      - "${EXTERNAL_PORT:-8000}:${PORT:-8000}"
     
     volumes:
       # Source code (for development without rebuilds)
@@ -30,19 +31,31 @@ services:
     
     environment:
       # Server settings
-      - HOST=0.0.0.0
-      - PORT=8000
-      - LOG_LEVEL=INFO
+      - HOST=${HOST:-0.0.0.0}
+      - PORT=${PORT:-8000}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
       
       # Paths
-      - CONFIG_DIR=/app/config
-      - KEYS_DIR=/app/keys
-      - LOGS_DIR=/app/logs
+      - CONFIG_DIR=${CONFIG_DIR:-/app/config}
+      - KEYS_DIR=${KEYS_DIR:-/app/keys}
+      - LOGS_DIR=${LOGS_DIR:-/app/logs}
+      
+      # Security
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-here-change-in-production}
+      - TOKEN_EXPIRY_HOURS=${TOKEN_EXPIRY_HOURS:-8760}
       
       # Rate limiting
-      - RATE_LIMIT_ENABLED=true
-      - RATE_LIMIT_PER_MINUTE=60
-      - RATE_LIMIT_PER_HOUR=500
+      - RATE_LIMIT_ENABLED=${RATE_LIMIT_ENABLED:-true}
+      - RATE_LIMIT_PER_MINUTE=${RATE_LIMIT_PER_MINUTE:-60}
+      - RATE_LIMIT_PER_HOUR=${RATE_LIMIT_PER_HOUR:-500}
+      
+      # SSH settings
+      - SSH_CONNECTION_TIMEOUT=${SSH_CONNECTION_TIMEOUT:-30}
+      - SSH_COMMAND_TIMEOUT=${SSH_COMMAND_TIMEOUT:-300}
+      
+      # Development settings
+      - DEBUG=${DEBUG:-false}
+      - RELOAD=${RELOAD:-false}
       
       # SSH key passphrases (if needed)
       # - PROD_SSH_PASSPHRASE=${PROD_SSH_PASSPHRASE}
@@ -73,13 +86,27 @@ services:
         max-size: "10m"
         max-file: "3"
     
-    # Network
+    # Network configuration
     networks:
       - mcp-network
+      # Add custom networks by setting CUSTOM_NETWORKS in .env
+      # Example: CUSTOM_NETWORKS=proxy-network,monitoring-network
 
 networks:
   mcp-network:
     driver: bridge
+  
+  # Custom networks can be added here
+  # They will be created automatically if referenced in CUSTOM_NETWORKS
+  # Example networks for common use cases:
+  
+  # proxy-network:
+  #   external: true
+  #   name: nginx-proxy-manager
+  
+  # monitoring-network:
+  #   external: true
+  #   name: monitoring-stack
 
 # Optional: Add nginx reverse proxy for HTTPS
 # Uncomment if you want to use nginx-proxy-manager or similar

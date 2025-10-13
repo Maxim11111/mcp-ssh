@@ -3,12 +3,20 @@
 ## 1. Запуск сервера
 
 ```bash
+# Скопировать конфигурацию окружения
+cp .env.example .env
+
+# При необходимости изменить настройки (например, порт)
+# nano .env
+
 # Запустить Docker контейнер
 docker compose up -d
 
 # Проверить что сервер работает
 curl http://localhost:8000/health
 ```
+
+**Примечание:** По умолчанию сервер запускается на порту 8000. Чтобы изменить внешний порт, отредактируйте файл `.env` и установите `EXTERNAL_PORT=9000` (или любой другой порт).
 
 ## 2. Создание токена
 
@@ -58,6 +66,8 @@ CLI автоматически:
 ```
 
 **Замените** `YOUR_TOKEN_HERE` на токен из шага 2.
+
+**Примечание:** Если вы изменили порт в `.env` файле, используйте соответствующий URL в конфигурации Cursor.
 
 ## 5. Перезапустите Cursor
 
@@ -231,6 +241,83 @@ chmod 644 keys/*.pub
 ```
 
 Подробнее см. [DEPLOYMENT.md](DEPLOYMENT.md)
+
+## Конфигурация через .env
+
+Все настройки сервера можно изменить через файл `.env`:
+
+```bash
+# Основные настройки
+HOST=0.0.0.0                    # Адрес привязки
+PORT=8000                        # Внутренний порт контейнера
+EXTERNAL_PORT=8000               # Внешний порт Docker хоста
+
+# Безопасность
+SECRET_KEY=your-secret-key       # Измените в продакшене!
+TOKEN_EXPIRY_HOURS=8760         # Срок действия токенов
+
+# Ограничения скорости
+RATE_LIMIT_PER_MINUTE=60        # Запросов в минуту
+RATE_LIMIT_PER_HOUR=500         # Команд в час
+
+# SSH настройки
+SSH_CONNECTION_TIMEOUT=30       # Таймаут SSH подключения
+SSH_COMMAND_TIMEOUT=300         # Таймаут выполнения команд
+```
+
+### Примеры конфигурации
+
+**Изменение порта:**
+```bash
+# В .env файле
+EXTERNAL_PORT=9000
+
+# Тогда в Cursor используйте:
+# "url": "http://localhost:9000/mcp"
+```
+
+**Увеличение лимитов:**
+```bash
+# В .env файле
+RATE_LIMIT_PER_MINUTE=120
+RATE_LIMIT_PER_HOUR=1000
+```
+
+**Отладка:**
+```bash
+# В .env файле
+DEBUG=true
+LOG_LEVEL=DEBUG
+```
+
+## Reverse Proxy (Продакшн)
+
+Для продакшн развертывания с reverse proxy:
+
+### nginx-proxy-manager
+
+```bash
+# Использовать proxy compose файл
+docker-compose -f docker-compose.yml -f docker-compose.proxy.yml up -d
+```
+
+### Traefik
+
+```bash
+# Использовать proxy compose файл
+docker-compose -f docker-compose.yml -f docker-compose.proxy.yml up -d
+```
+
+### Кастомные сети
+
+```bash
+# Создать сети
+docker network create proxy-network
+docker network create monitoring-network
+
+# Использовать proxy compose файл
+docker-compose -f docker-compose.yml -f docker-compose.proxy.yml up -d
+```
 
 
 

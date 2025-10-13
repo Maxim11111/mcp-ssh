@@ -31,6 +31,12 @@ cd mcp-ssh
 cp config/servers.json.example config/servers.json
 cp config/tokens.json.example config/tokens.json
 
+# Copy environment configuration
+cp .env.example .env
+
+# Edit .env file to customize settings (optional)
+# nano .env
+
 # Start with Docker Compose
 docker-compose up -d
 
@@ -164,6 +170,48 @@ python -m src.cli token revoke tok_abc123
 
 ## Configuration
 
+### Environment Variables (.env)
+
+The server can be configured using environment variables. Copy `.env.example` to `.env` and customize:
+
+```bash
+# Copy example configuration
+cp .env.example .env
+
+# Edit configuration
+nano .env
+```
+
+Key configuration options:
+
+```bash
+# Server Configuration
+HOST=0.0.0.0                    # Server bind address
+PORT=8000                       # Internal container port
+EXTERNAL_PORT=8000              # External Docker host port
+
+# Security
+SECRET_KEY=your-secret-key      # Change in production!
+TOKEN_EXPIRY_HOURS=8760        # Token validity period
+
+# Rate Limiting
+RATE_LIMIT_PER_MINUTE=60       # Requests per minute
+RATE_LIMIT_PER_HOUR=500        # Commands per hour
+
+# SSH Settings
+SSH_CONNECTION_TIMEOUT=30       # SSH connection timeout
+SSH_COMMAND_TIMEOUT=300        # Command execution timeout
+```
+
+### Reverse Proxy Setup
+
+For production deployments with reverse proxy (nginx-proxy-manager, traefik, etc.):
+
+```bash
+# Use proxy compose file (recommended)
+docker-compose -f docker-compose.yml -f docker-compose.proxy.yml up -d
+```
+
 ### servers.json
 
 ```json
@@ -272,13 +320,36 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for production deployment guide.
 
 ## Environment Variables
 
+All configuration can be managed via `.env` file. See `.env.example` for all available options:
+
 ```bash
+# Server Configuration
 HOST=0.0.0.0              # Listen host
-PORT=8000                 # Listen port
+PORT=8000                 # Internal container port
+EXTERNAL_PORT=8000        # External Docker host port
 LOG_LEVEL=INFO            # Logging level
+
+# Directory Configuration
 CONFIG_DIR=/app/config    # Configuration directory
 KEYS_DIR=/app/keys        # SSH keys directory
 LOGS_DIR=/app/logs        # Logs directory
+
+# Security Settings
+SECRET_KEY=your-secret-key # Change in production!
+TOKEN_EXPIRY_HOURS=8760   # Token validity period
+
+# Rate Limiting
+RATE_LIMIT_ENABLED=true   # Enable rate limiting
+RATE_LIMIT_PER_MINUTE=60  # Requests per minute
+RATE_LIMIT_PER_HOUR=500   # Commands per hour
+
+# SSH Settings
+SSH_CONNECTION_TIMEOUT=30  # SSH connection timeout
+SSH_COMMAND_TIMEOUT=300   # Command execution timeout
+
+# Development Settings
+DEBUG=false               # Debug mode
+RELOAD=false              # Auto-reload on changes
 ```
 
 ## Requirements

@@ -1,0 +1,36 @@
+# docker-compose.proxy.yml
+# Use this file when running behind a reverse proxy (nginx-proxy-manager, traefik, etc.)
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.proxy.yml up -d
+
+version: '3.8'
+
+services:
+  mcp-ssh-server:
+    # Remove port mapping when using reverse proxy
+    ports: []
+    
+    # Add to external proxy network
+    networks:
+      - mcp-network
+      - proxy-network
+    
+    # Expose port internally for reverse proxy
+    expose:
+      - "8000"
+    
+    # Health check for reverse proxy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  mcp-network:
+    driver: bridge
+  
+  # Connect to existing proxy network
+  proxy-network:
+    external: true
+    name: nginx-proxy-manager

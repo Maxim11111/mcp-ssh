@@ -46,9 +46,15 @@ mkdir -p config keys logs
 cp config/servers.json.example config/servers.json
 cp config/tokens.json.example config/tokens.json
 
+# Copy environment configuration
+cp .env.example .env
+
+# Edit .env file for production settings
+nano .env
+
 # Set proper permissions
 chmod 700 keys
-chmod 600 config/servers.json config/tokens.json
+chmod 600 config/servers.json config/tokens.json .env
 ```
 
 ### 3. Add Your Servers
@@ -113,7 +119,11 @@ docker-compose exec mcp-ssh-server python -m src.cli status
 docker-compose exec mcp-ssh-server python -m src.cli server test prod-web-01
 ```
 
-## nginx-proxy-manager Setup
+## Reverse Proxy Setup
+
+For production deployments, use a reverse proxy for HTTPS and load balancing:
+
+### Option 1: nginx-proxy-manager (Recommended)
 
 For production, use nginx-proxy-manager to add HTTPS:
 
@@ -121,14 +131,21 @@ For production, use nginx-proxy-manager to add HTTPS:
 
 Follow the [official guide](https://nginxproxymanager.com/guide/#quick-setup).
 
-### 2. Add Proxy Host
+### 2. Configure MCP SSH for Reverse Proxy
+
+```bash
+# Use proxy compose file (recommended)
+docker-compose -f docker-compose.yml -f docker-compose.proxy.yml up -d
+```
+
+### 3. Add Proxy Host
 
 In nginx-proxy-manager admin panel:
 
 1. **Add Proxy Host**
 2. **Domain**: mcp.yourdomain.com
 3. **Scheme**: http
-4. **Forward Hostname/IP**: mcp-ssh-server (or server IP)
+4. **Forward Hostname/IP**: mcp-ssh-server
 5. **Forward Port**: 8000
 6. **Enable**: Websockets Support ✓
 7. **SSL Tab**:
@@ -136,7 +153,7 @@ In nginx-proxy-manager admin panel:
    - Force SSL ✓
    - HTTP/2 Support ✓
 
-### 3. Update Agent Configuration
+### 4. Update Agent Configuration
 
 Use HTTPS URL in agent configs:
 
@@ -152,6 +169,36 @@ Use HTTPS URL in agent configs:
     }
   }
 }
+```
+
+### Option 2: Traefik
+
+For Traefik reverse proxy, use the proxy compose file:
+
+```bash
+# Use proxy compose file
+docker-compose -f docker-compose.yml -f docker-compose.proxy.yml up -d
+
+# Add labels to docker-compose.yml for Traefik:
+labels:
+  - "traefik.enable=true"
+  - "traefik.http.routers.mcp-ssh.rule=Host(`mcp.yourdomain.com`)"
+  - "traefik.http.routers.mcp-ssh.tls=true"
+  - "traefik.http.routers.mcp-ssh.tls.certresolver=letsencrypt"
+  - "traefik.http.services.mcp-ssh.loadbalancer.server.port=8000"
+```
+
+### Option 3: Custom Networks
+
+For custom Docker networks:
+
+```bash
+# Create custom networks
+docker network create proxy-network
+docker network create monitoring-network
+
+# Use proxy compose file with custom networks
+docker-compose -f docker-compose.yml -f docker-compose.proxy.yml up -d
 ```
 
 ## Manual Deployment (Without Docker)
@@ -214,6 +261,57 @@ sudo systemctl start mcp-ssh
 
 # Check status
 sudo systemctl status mcp-ssh
+```
+
+## Environment Configuration (.env)
+
+For production deployment, configure the `.env` file with appropriate settings:
+
+### Production .env Example
+
+```bash
+# Server Configuration
+HOST=0.0.0.0
+PORT=8000
+EXTERNAL_PORT=8000
+LOG_LEVEL=INFO
+
+# Security (CHANGE THESE!)
+SECRET_KEY=your-super-secure-secret-key-here
+TOKEN_EXPIRY_HOURS=8760
+
+# Rate Limiting
+RATE_LIMIT_ENABLED=true
+RATE_LIMIT_PER_MINUTE=60
+RATE_LIMIT_PER_HOUR=500
+
+# SSH Settings
+SSH_CONNECTION_TIMEOUT=30
+SSH_COMMAND_TIMEOUT=300
+
+# Production Settings
+DEBUG=false
+RELOAD=false
+
+```
+
+### Security Considerations
+
+1. **Change SECRET_KEY**: Generate a strong secret key for production
+2. **Adjust Rate Limits**: Set appropriate limits for your environment
+3. **Configure Timeouts**: Adjust SSH timeouts based on network conditions
+4. **Use HTTPS**: Always use HTTPS in production (via nginx-proxy-manager)
+
+### Port Configuration
+
+To change the external port:
+
+```bash
+# In .env file
+EXTERNAL_PORT=9000
+
+# Then update agent configurations to use new port
+# "url": "https://mcp.yourdomain.com:9000/mcp/v1"
 ```
 
 ## Server Configuration
