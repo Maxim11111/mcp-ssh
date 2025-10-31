@@ -24,7 +24,7 @@ A centralized MCP (Model Context Protocol) server that enables LLM agents (Curso
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/mcp-ssh.git
+git clone https://github.com/Maxim11111/mcp-ssh.git
 cd mcp-ssh
 
 # Copy example configs
@@ -371,7 +371,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Support
 
-- GitHub Issues: [Report bugs](https://github.com/yourusername/mcp-ssh/issues)
+- GitHub Issues: [Report bugs](https://github.com/Maxim11111/mcp-ssh/issues)
 - Documentation: See docs folder
 - Email: your.email@example.com
 

@@ -32,7 +32,7 @@ Complete guide for deploying MCP SSH Server in production.
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/yourusername/mcp-ssh.git
+git clone https://github.com/Maxim11111/mcp-ssh.git
 cd mcp-ssh
 ```
 
