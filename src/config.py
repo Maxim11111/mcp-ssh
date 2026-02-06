@@ -2,6 +2,7 @@
 
 import json
 import os
+import threading
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 from pydantic import BaseModel, Field, validator
@@ -72,6 +73,8 @@ class Config:
         self.servers: Dict[str, ServerConfig] = {}
         self.tokens: Dict[str, TokenConfig] = {}
         self.security: SecurityConfig = SecurityConfig()
+        self._servers_lock = threading.Lock()
+        self._servers_file_mtime: float = 0.0
         
         self._load_servers()
         self._load_tokens()
@@ -112,6 +115,25 @@ class Config:
             
         except Exception as e:
             logger.error(f"Error loading servers config: {e}")
+        finally:
+            try:
+                self._servers_file_mtime = servers_file.stat().st_mtime
+            except OSError:
+                pass
+    
+    def _reload_servers_if_changed(self):
+        """Reload servers from disk if servers.json was modified (e.g. by CLI)."""
+        servers_file = self.config_dir / 'servers.json'
+        if not servers_file.exists():
+            return
+        try:
+            mtime = servers_file.stat().st_mtime
+            if mtime > self._servers_file_mtime:
+                with self._servers_lock:
+                    if mtime > self._servers_file_mtime:
+                        self._load_servers()
+        except OSError:
+            pass
     
     def _load_tokens(self):
         """Load tokens configuration from JSON file."""
@@ -192,10 +214,12 @@ class Config:
     
     def get_server(self, name: str) -> Optional[ServerConfig]:
         """Get server configuration by name."""
+        self._reload_servers_if_changed()
         return self.servers.get(name)
     
     def get_enabled_servers(self) -> Dict[str, ServerConfig]:
         """Get all enabled servers."""
+        self._reload_servers_if_changed()
         return {
             name: server
             for name, server in self.servers.items()
@@ -204,6 +228,7 @@ class Config:
     
     def get_servers_by_tag(self, tag: str) -> Dict[str, ServerConfig]:
         """Get servers by tag."""
+        self._reload_servers_if_changed()
         return {
             name: server
             for name, server in self.servers.items()
