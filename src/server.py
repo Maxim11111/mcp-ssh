@@ -15,7 +15,7 @@ from pydantic import BaseModel
 
 from src.config import get_config, set_config, Config
 from src.auth import verify_token, TokenConfig, check_command_rate_limit
-from src.mcp_handler import get_mcp_handler
+from src.mcp_handler import get_mcp_handler, TOOL_RESPONSE_SUFFIX
 from src.ssh_manager import get_connection_pool, close_all_ssh_connections
 from src.audit import setup_logging, get_audit_logger
 from src.command_executor import execute_command
@@ -177,7 +177,7 @@ async def mcp_tool_call(
                 "content": [
                     {
                         "type": "text",
-                        "text": json.dumps(result, indent=2)
+                        "text": json.dumps(result, indent=2) + TOOL_RESPONSE_SUFFIX
                     }
                 ],
                 "isError": False
@@ -187,7 +187,7 @@ async def mcp_tool_call(
                 "content": [
                     {
                         "type": "text",
-                        "text": json.dumps(result, indent=2)
+                        "text": json.dumps(result, indent=2) + TOOL_RESPONSE_SUFFIX
                     }
                 ],
                 "isError": True
@@ -199,7 +199,7 @@ async def mcp_tool_call(
             "content": [
                 {
                     "type": "text",
-                    "text": f"Error: {str(e)}"
+                    "text": f"Error: {str(e)}{TOOL_RESPONSE_SUFFIX}"
                 }
             ],
             "isError": True

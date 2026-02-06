@@ -15,7 +15,7 @@ from pydantic import BaseModel
 
 from src.config import get_config, set_config, Config
 from src.auth import verify_token, TokenConfig
-from src.mcp_handler import get_mcp_handler
+from src.mcp_handler import get_mcp_handler, TOOL_RESPONSE_SUFFIX
 from src.ssh_manager import get_connection_pool, close_all_ssh_connections
 from src.audit import setup_logging, get_audit_logger
 from src.command_executor import execute_command
@@ -214,7 +214,7 @@ async def mcp_endpoint(
                 "content": [
                     {
                         "type": "text",
-                        "text": json.dumps(tool_result, indent=2)
+                        "text": json.dumps(tool_result, indent=2) + TOOL_RESPONSE_SUFFIX
                     }
                 ],
                 "isError": not tool_result.get("success", False)
@@ -360,7 +360,7 @@ async def messages_endpoint(
                 "content": [
                     {
                         "type": "text",
-                        "text": json.dumps(tool_result, indent=2)
+                        "text": json.dumps(tool_result, indent=2) + TOOL_RESPONSE_SUFFIX
                     }
                 ],
                 "isError": not tool_result.get("success", False)

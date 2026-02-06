@@ -7,7 +7,7 @@ import os
 from typing import Dict, Any
 
 from src.config import get_config, Config, set_config
-from src.mcp_handler import get_mcp_handler
+from src.mcp_handler import get_mcp_handler, TOOL_RESPONSE_SUFFIX
 from src.audit import setup_logging
 
 # Setup logging to file (not stdout to avoid interfering with stdio)
@@ -78,7 +78,7 @@ async def handle_request(request: Dict[str, Any]) -> Dict[str, Any]:
                     "content": [
                         {
                             "type": "text",
-                            "text": json.dumps(result, indent=2)
+                            "text": json.dumps(result, indent=2) + TOOL_RESPONSE_SUFFIX
                         }
                     ],
                     "isError": not result.get("success", False)

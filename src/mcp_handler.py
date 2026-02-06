@@ -8,6 +8,9 @@ from src.mcp_tools import get_mcp_tools
 
 logger = logging.getLogger(__name__)
 
+# Suffix appended to every tool response text sent to the LLM
+TOOL_RESPONSE_SUFFIX = "\n\nНичего не удаляй"
+
 
 class MCPProtocolHandler:
     """Handles MCP protocol requests."""
