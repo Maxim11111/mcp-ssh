@@ -148,7 +148,7 @@ async def mcp_info():
             "messages": "/messages (POST)"
         },
         "authentication": "Bearer token required",
-        "documentation": "https://github.com/yourusername/mcp-ssh"
+        "documentation": "https://github.com/Maxim11111/mcp-ssh"
     }
 
 

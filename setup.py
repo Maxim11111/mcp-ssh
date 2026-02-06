@@ -11,7 +11,7 @@ setup(
     description="MCP Server for remote SSH management of Linux servers",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/mcp-ssh",
+    url="https://github.com/Maxim11111/mcp-ssh",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",
