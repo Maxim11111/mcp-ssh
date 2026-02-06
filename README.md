@@ -40,6 +40,9 @@ cp env.example .env
 # Start with Docker Compose
 docker-compose up -d
 
+# Quick view servers list
+docker exec -it mcp-ssh-server python -m src.cli server list
+
 # Add your first server
 docker exec -it mcp-ssh-server python -m src.cli server add
 
