@@ -65,7 +65,7 @@ cp config/tokens.json.example config/tokens.json
 python -m src.cli server add
 
 # Start server
-python -m src.server
+uvicorn src.server_http:app --host 0.0.0.0 --port 8000
 ```
 
 ## Architecture
@@ -298,25 +298,27 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for production deployment guide.
 
 ## Documentation
 
+- [QUICKSTART.md](QUICKSTART.md) - Quick start (RU/EN)
 - [DEPLOYMENT.md](DEPLOYMENT.md) - Production deployment guide
 - [CURSOR_INTEGRATION.md](CURSOR_INTEGRATION.md) - Cursor AI integration
+- [DEVELOPMENT.md](DEVELOPMENT.md) - Development and debugging
+- [MCP_PROTOCOL.md](MCP_PROTOCOL.md) - MCP protocol and tools
 - [SECURITY.md](SECURITY.md) - Security best practices
 - [TESTING.md](TESTING.md) - Testing guide
 
 ## API Endpoints
 
-### MCP Protocol Endpoints
+The server runs HTTP JSON-RPC on a single endpoint (see [MCP_PROTOCOL.md](MCP_PROTOCOL.md)):
 
-- `POST /mcp/v1/initialize` - Initialize MCP session
-- `POST /mcp/v1/tools/list` - List available tools
-- `POST /mcp/v1/tools/call` - Execute tool
-- `POST /mcp/v1/command/stream` - Create streaming session
-- `GET /mcp/v1/sse/{session_id}` - SSE streaming endpoint
+### MCP Protocol
 
-### Utility Endpoints
+- `GET /mcp` - Server info and available transports
+- `POST /mcp` - JSON-RPC (methods: `initialize`, `tools/list`, `tools/call`)
+- `GET /sse` - SSE transport (legacy)
+
+### Utility
 
 - `GET /health` - Health check
-- `GET /api/servers` - List servers (debug)
 
 ## Environment Variables
 
@@ -375,7 +377,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 ## Support
 
 - GitHub Issues: [Report bugs](https://github.com/Maxim11111/mcp-ssh/issues)
-- Documentation: See docs folder
+- Documentation: See *.md files in the repository root
 - Email: your.email@example.com
 
 ## Acknowledgments

@@ -47,7 +47,7 @@ cp config/servers.json.example config/servers.json
 cp config/tokens.json.example config/tokens.json
 
 # Copy environment configuration
-cp .env.example .env
+cp env.example .env
 
 # Edit .env file for production settings
 nano .env
@@ -161,8 +161,7 @@ Use HTTPS URL in agent configs:
 {
   "mcpServers": {
     "ssh-devops": {
-      "url": "https://mcp.yourdomain.com/mcp/v1",
-      "transport": "sse",
+      "url": "https://mcp.yourdomain.com/mcp",
       "headers": {
         "Authorization": "Bearer tok_your_token_here"
       }
@@ -309,7 +308,7 @@ To change the external port:
 EXTERNAL_PORT=9000
 
 # Then update agent configurations to use new port
-# "url": "https://mcp.yourdomain.com:9000/mcp/v1"
+# "url": "https://mcp.yourdomain.com:9000/mcp"
 ```
 
 ## Server Configuration
@@ -566,10 +565,11 @@ cat /etc/ssh/sshd_config | grep PubkeyAuthentication
 ### Agent Can't Connect
 
 ```bash
-# Test endpoint
-curl -H "Authorization: Bearer tok_your_token" \
-  http://localhost:8000/mcp/v1/initialize \
-  -d '{"protocolVersion":"1.0.0","capabilities":{},"clientInfo":{"name":"test"}}'
+# Test endpoint (JSON-RPC via POST /mcp)
+curl -X POST http://localhost:8000/mcp \
+  -H "Authorization: Bearer tok_your_token" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
 
 # Check token
 docker-compose exec mcp-ssh-server python -m src.cli token list

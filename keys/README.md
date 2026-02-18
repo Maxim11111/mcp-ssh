@@ -25,8 +25,11 @@ ssh-keygen -t rsa -b 4096 -f prod_web_rsa -C "mcp-server"
 The MCP SSH CLI tool can automatically generate and install keys:
 
 ```bash
-# Add server with automatic key generation
-mcp-ssh server add
+# Add server with automatic key generation (from project root)
+python -m src.cli server add
+
+# Or via Docker:
+# docker exec -it mcp-ssh-server python -m src.cli server add
 
 # This will:
 # 1. Prompt for server details
@@ -65,11 +68,11 @@ chmod 644 keys/*_ed25519.pub
 
 ## Docker Volume
 
-When running in Docker, mount this directory as a volume:
+When running in Docker, mount this directory as a volume (read-write so the CLI can create keys):
 
 ```yaml
 volumes:
-  - ./keys:/app/keys:ro
+  - ./keys:/app/keys
 ```
 
 

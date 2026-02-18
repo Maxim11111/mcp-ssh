@@ -231,7 +231,7 @@ def test_create_connection():
 
 import pytest
 from fastapi.testclient import TestClient
-from src.server import app
+from src.server_http import app
 
 
 @pytest.fixture
@@ -250,23 +250,25 @@ def test_health_endpoint(client):
 
 
 def test_mcp_initialize(client):
-    """Test MCP initialize endpoint."""
+    """Test MCP initialize (JSON-RPC via POST /mcp)."""
     headers = {"Authorization": "Bearer tok_test123"}
     payload = {
-        "protocolVersion": "1.0.0",
-        "capabilities": {},
-        "clientInfo": {"name": "test"}
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {
+            "protocolVersion": "2024-11-05",
+            "capabilities": {},
+            "clientInfo": {"name": "test", "version": "1.0"}
+        }
     }
     
-    response = client.post(
-        "/mcp/v1/initialize",
-        json=payload,
-        headers=headers
-    )
+    response = client.post("/mcp", json=payload, headers=headers)
     
     assert response.status_code == 200
     data = response.json()
-    assert 'protocolVersion' in data
+    assert "result" in data
+    assert "protocolVersion" in data["result"]
 ```
 
 ### Docker Integration Tests
@@ -322,31 +324,42 @@ docker-compose exec mcp-ssh-server python -m src.cli server test test-server-01
 
 ### Test API Endpoints
 
+The server exposes JSON-RPC on `POST /mcp` (see [MCP_PROTOCOL.md](MCP_PROTOCOL.md)):
+
 ```bash
 # Health check
 curl http://localhost:8000/health
 
-# Initialize MCP
-curl -X POST http://localhost:8000/mcp/v1/initialize \
+# Initialize MCP (JSON-RPC)
+curl -X POST http://localhost:8000/mcp \
   -H "Authorization: Bearer tok_test123" \
   -H "Content-Type: application/json" \
   -d '{
-    "protocolVersion": "1.0.0",
-    "capabilities": {},
-    "clientInfo": {"name": "test"}
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "initialize",
+    "params": {
+      "protocolVersion": "2024-11-05",
+      "capabilities": {},
+      "clientInfo": {"name": "test", "version": "1.0"}
+    }
   }'
 
 # List tools
-curl -X POST http://localhost:8000/mcp/v1/tools/list \
-  -H "Authorization: Bearer tok_test123"
+curl -X POST http://localhost:8000/mcp \
+  -H "Authorization: Bearer tok_test123" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/list"}'
 
 # Call tool
-curl -X POST http://localhost:8000/mcp/v1/tools/call \
+curl -X POST http://localhost:8000/mcp \
   -H "Authorization: Bearer tok_test123" \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "list_servers",
-    "arguments": {}
+    "jsonrpc": "2.0",
+    "id": 3,
+    "method": "tools/call",
+    "params": {"name": "list_servers", "arguments": {}}
   }'
 ```
 
@@ -372,15 +385,20 @@ curl -X POST http://localhost:8000/mcp/v1/tools/call \
 ### Test Security
 
 ```bash
-# Test forbidden command
-curl -X POST http://localhost:8000/mcp/v1/tools/call \
+# Test forbidden command (JSON-RPC tools/call)
+curl -X POST http://localhost:8000/mcp \
   -H "Authorization: Bearer tok_test123" \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "execute_command",
-    "arguments": {
-      "server": "test-server-01",
-      "command": "rm -rf /"
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/call",
+    "params": {
+      "name": "execute_command",
+      "arguments": {
+        "server": "test-server-01",
+        "command": "rm -rf /"
+      }
     }
   }'
 
@@ -412,7 +430,7 @@ ab -n 100 -c 5 \
   -H "Authorization: Bearer tok_test123" \
   -p request.json \
   -T "application/json" \
-  http://localhost:8000/mcp/v1/tools/list
+  http://localhost:8000/mcp
 ```
 
 ### Load Testing with Locust
@@ -439,10 +457,11 @@ class MCPUser(HttpUser):
     
     @task(1)
     def list_tools(self):
-        """Test list tools."""
+        """Test list tools (JSON-RPC)."""
         self.client.post(
-            "/mcp/v1/tools/list",
-            headers=self.headers
+            "/mcp",
+            headers={**self.headers, "Content-Type": "application/json"},
+            json={"jsonrpc": "2.0", "id": 1, "method": "tools/list"}
         )
 ```
 

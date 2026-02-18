@@ -29,17 +29,6 @@ To use with different reverse proxy:
 2. Adjust `expose` port if needed
 3. Modify health check if required
 
-## Alternative: Environment Variables
+## Note
 
-Instead of using this file, you can configure via `.env`:
-
-```bash
-DISABLE_PORT_MAPPING=true
-CUSTOM_NETWORKS=nginx-proxy-manager
-```
-
-Then use regular docker-compose:
-
-```bash
-docker-compose up -d
-```
+The default `docker-compose.yml` does not support disabling port mapping via environment variables. For reverse proxy setups, use this override file as shown above.

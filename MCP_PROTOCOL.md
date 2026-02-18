@@ -313,9 +313,9 @@ docker exec -it mcp-ssh-server python -m src.cli token disable TOKEN_NAME
 
 ## Rate Limiting
 
-- Токены имеют ограничение на количество команд в минуту
-- Настраивается в `config/tokens.json` поле `rate_limit_per_minute`
-- По умолчанию: 60 команд/минуту
+- Лимиты задаются в `config/servers.json` в секции `security.rate_limit` (requests_per_minute, commands_per_hour).
+- В `config/tokens.json` для каждого токена задаётся `rate_limit_multiplier` (множитель к базовым лимитам).
+- По умолчанию: 60 запросов/минуту, 500 команд/час.
 
 ## Безопасность
 

@@ -4,7 +4,7 @@
 
 ```bash
 # Скопировать конфигурацию окружения
-cp .env.example .env
+cp env.example .env
 
 # При необходимости изменить настройки (например, порт)
 # nano .env
@@ -165,13 +165,14 @@ curl -X POST http://localhost:8000/mcp \
 # Список серверов
 docker exec -it mcp-ssh-server python -m src.cli server list
 
-# Включить/отключить сервер
-docker exec -it mcp-ssh-server python -m src.cli server enable node2
-docker exec -it mcp-ssh-server python -m src.cli server disable node2
-
 # Удалить сервер
 docker exec -it mcp-ssh-server python -m src.cli server remove node2
+
+# Тест подключения
+docker exec -it mcp-ssh-server python -m src.cli server test node2
 ```
+
+Включение/отключение сервера: измените поле `"enabled"` в `config/servers.json`.
 
 ## Управление токенами
 
@@ -179,13 +180,11 @@ docker exec -it mcp-ssh-server python -m src.cli server remove node2
 # Список токенов
 docker exec -it mcp-ssh-server python -m src.cli token list
 
-# Включить/отключить токен
-docker exec -it mcp-ssh-server python -m src.cli token enable cursor-admin
-docker exec -it mcp-ssh-server python -m src.cli token disable cursor-admin
-
-# Отозвать токен
+# Отозвать токен (можно указать имя или значение токена)
 docker exec -it mcp-ssh-server python -m src.cli token revoke cursor-admin
 ```
+
+Включение/отключение токена: измените поле `"enabled"` в `config/tokens.json`.
 
 ## Логи
 

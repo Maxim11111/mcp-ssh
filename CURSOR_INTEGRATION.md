@@ -119,15 +119,13 @@ If you prefer stdio transport (local process communication):
 {
   "mcpServers": {
     "ssh-prod": {
-      "url": "https://mcp-prod.yourcompany.com/mcp/v1",
-      "transport": "sse",
+      "url": "https://mcp-prod.yourcompany.com/mcp",
       "headers": {
         "Authorization": "Bearer tok_prod_token"
       }
     },
     "ssh-test": {
-      "url": "https://mcp-test.yourcompany.com/mcp/v1",
-      "transport": "sse",
+      "url": "https://mcp-test.yourcompany.com/mcp",
       "headers": {
         "Authorization": "Bearer tok_test_token"
       }
