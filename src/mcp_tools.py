@@ -7,7 +7,12 @@ import logging
 
 from src.config import get_config, TokenConfig
 from src.command_executor import execute_command, execute_command_on_multiple, CommandResult
-from src.ssh_manager import create_ssh_connection, close_ssh_connection, get_pool_stats
+from src.ssh_manager import (
+    create_ssh_connection,
+    close_ssh_connection,
+    get_pool_stats,
+    SSHConnectionError,
+)
 from src.auth import check_permission, require_permission, check_server_access, require_server_access
 from src.audit import get_audit_logger
 from src.security import SecurityContext, validate_command, validate_file_path
@@ -502,20 +507,27 @@ class MCPTools:
         """
         require_permission(token_config, 'install')
         require_server_access(token_config, server)
-        
+
         # Detect package manager if auto
         if package_manager == 'auto':
-            detect_cmd = 'which apt-get yum dnf 2>/dev/null | head -1'
-            result, _ = await execute_command(
-                server_name=server,
-                token_name=token_config.name,
-                permissions=token_config.permissions,
-                command=detect_cmd,
-                timeout=10,
-                auto_close=True
-            )
-            
-            pm_path = result.stdout.strip()
+            try:
+                detect_cmd = 'which apt-get yum dnf 2>/dev/null | head -1'
+                result, _ = await execute_command(
+                    server_name=server,
+                    token_name=token_config.name,
+                    permissions=token_config.permissions,
+                    command=detect_cmd,
+                    timeout=10,
+                    auto_close=True
+                )
+                pm_path = result.stdout.strip()
+            except SSHConnectionError as e:
+                return {
+                    'success': False,
+                    'server': server,
+                    'package': package_name,
+                    'error': str(e)
+                }
             if 'apt' in pm_path:
                 package_manager = 'apt'
             elif 'yum' in pm_path:
@@ -525,6 +537,8 @@ class MCPTools:
             else:
                 return {
                     'success': False,
+                    'server': server,
+                    'package': package_name,
                     'error': 'Could not detect package manager'
                 }
         
@@ -638,7 +652,8 @@ class MCPTools:
         }
         
         info = {}
-        
+        connection_error = None
+
         for key, command in commands.items():
             try:
                 result, _ = await execute_command(
@@ -649,11 +664,22 @@ class MCPTools:
                     timeout=30,
                     auto_close=True
                 )
-                
                 info[key] = result.stdout.strip() if result.success else 'N/A'
-            except:
+            except SSHConnectionError as e:
+                connection_error = str(e)
+                logger.warning(f"Connection to {server} failed: {e}")
+                break
+            except Exception as e:
                 info[key] = 'N/A'
-        
+
+        if connection_error:
+            return {
+                'success': False,
+                'server': server,
+                'error': connection_error,
+                'system_info': info
+            }
+
         return {
             'success': True,
             'server': server,

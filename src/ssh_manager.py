@@ -10,11 +10,21 @@ import logging
 
 import paramiko
 from paramiko import SSHClient, AutoAddPolicy, RSAKey, Ed25519Key
+from paramiko.ssh_exception import SSHException
 
 from src.config import get_config, ServerConfig
 from src.audit import get_audit_logger
 
 logger = logging.getLogger(__name__)
+
+
+class SSHConnectionError(Exception):
+    """Raised when SSH connection to a server fails (timeout, unreachable, etc)."""
+
+    def __init__(self, server_name: str, message: str):
+        self.server_name = server_name
+        self.message = message
+        super().__init__(f"Failed to connect to {server_name}: {message}")
 
 
 class SSHConnection:
@@ -126,25 +136,26 @@ class SSHConnectionPool:
             raise ValueError(f"Server is disabled: {server_name}")
         
         session_id = self._generate_session_id()
-        
+        client = None
+
         try:
             # Create SSH client
             client = SSHClient()
             client.set_missing_host_key_policy(AutoAddPolicy())
-            
+
             # Load SSH key
             passphrase = server_config.get_passphrase()
             pkey = self._load_ssh_key(
-                server_config.ssh_key_path, 
+                server_config.ssh_key_path,
                 passphrase
             )
-            
+
             # Connect
             logger.info(
                 f"Connecting to {server_name} ({server_config.host}:{server_config.port}) "
                 f"as {server_config.user} - Session: {session_id}"
             )
-            
+
             client.connect(
                 hostname=server_config.host,
                 port=server_config.port,
@@ -156,7 +167,7 @@ class SSHConnectionPool:
                 look_for_keys=False,
                 allow_agent=False
             )
-            
+
             # Create connection object
             connection = SSHConnection(
                 session_id=session_id,
@@ -164,26 +175,39 @@ class SSHConnectionPool:
                 server_name=server_name,
                 token_name=token_name
             )
-            
+
             # Store in pool
             with self.lock:
                 self.connections[session_id] = connection
-            
+
             audit.log_ssh_connection(token_name, server_name, 'success')
-            
+
             logger.info(
                 f"SSH connection established: {session_id} to {server_name}"
             )
-            
+
             return session_id, connection
-            
+
+        except (SSHException, TimeoutError, OSError) as e:
+            error_msg = str(e)
+            audit.log_ssh_connection(token_name, server_name, 'failed', error_msg)
+            logger.error(f"Failed to connect to {server_name}: {error_msg}")
+            if client:
+                try:
+                    client.close()
+                except Exception:
+                    pass
+            raise SSHConnectionError(server_name, error_msg)
         except Exception as e:
             error_msg = str(e)
             audit.log_ssh_connection(token_name, server_name, 'failed', error_msg)
-            logger.error(
-                f"Failed to connect to {server_name}: {error_msg}"
-            )
-            raise
+            logger.error(f"Failed to connect to {server_name}: {error_msg}")
+            if client:
+                try:
+                    client.close()
+                except Exception:
+                    pass
+            raise SSHConnectionError(server_name, error_msg)
     
     def get_connection(self, session_id: str) -> Optional[SSHConnection]:
         """Get connection by session ID."""

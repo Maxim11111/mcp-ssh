@@ -63,7 +63,7 @@ async def lifespan(app: FastAPI):
     
     # Shutdown
     logger.info("Shutting down MCP SSH Server...")
-    await close_all_ssh_connections()
+    await asyncio.to_thread(close_all_ssh_connections)
     logger.info("MCP SSH Server stopped")
 
 
@@ -158,6 +158,7 @@ async def mcp_endpoint(
     token_config: TokenConfig = Depends(get_token_config)
 ):
     """Main MCP JSON-RPC endpoint."""
+    body = None
     try:
         body = await request.json()
         logger.info(f"MCP Request from {request.client.host}: {body}")
@@ -247,11 +248,12 @@ async def mcp_endpoint(
         
     except Exception as e:
         logger.error(f"Error handling MCP request: {e}", exc_info=True)
+        request_id = body.get("id") if body and isinstance(body, dict) else None
         return JSONResponse(
             status_code=500,
             content={
                 "jsonrpc": "2.0",
-                "id": body.get("id") if isinstance(body, dict) else None,
+                "id": request_id,
                 "error": {
                     "code": -32603,
                     "message": str(e)
