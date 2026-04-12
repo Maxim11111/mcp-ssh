@@ -90,6 +90,7 @@ Set **`PUBLIC_BASE_URL`** in `.env` to the URL clients use (e.g. `https://mcp.ex
 | **Cursor** | `~/.cursor/mcp.json` | `url` + `headers.Authorization: Bearer tok_…` |
 | **Claude Code** | `claude mcp add …` or project config | Use HTTP transport URL ending in `/mcp`; complete **Authenticate** with token from `cli token create`, or pre-supply Bearer if the client supports it |
 | **OpenAI Codex** | `~/.codex/config.toml` or `.codex/config.toml` | `[mcp_servers.name]` with `url = "https://host/mcp"` and `bearer_token_env_var = "MCP_SSH_TOKEN"` (or `http_headers`) — see [Codex MCP](https://developers.openai.com/codex/mcp) |
+| **Google Gemini CLI** | `gemini mcp add …` | HTTP URL ending in `/mcp`; `-s user` = user-level config; Bearer via `--header "Authorization: Bearer tok_…"` or OAuth with `/mcp auth <name>` |
 | **Stdio** | process env | `MCP_TOKEN=tok_…` and `python -m src.server_stdio` |
 
 ## Usage Examples
@@ -145,6 +146,23 @@ claude mcp add --transport http ssh-devops https://your-server.example.com/mcp
 ```
 
 Use **Authenticate** in `/mcp` when prompted: open `/login`, paste the API token from `python -m src.cli token create`. The issued access token is the same string as your Bearer token.
+
+### With Google Gemini CLI
+
+Add a streamable HTTP server (user-wide config under `~/.gemini/`):
+
+```bash
+gemini mcp add devops https://your-server.example.com/mcp --transport http -s user
+```
+
+If you use a **Bearer token** instead of the browser OAuth flow, pass it when adding the server:
+
+```bash
+gemini mcp add devops https://your-server.example.com/mcp --transport http -s user \
+  --header "Authorization: Bearer tok_your_token_here"
+```
+
+With **MCP OAuth**, add the server first, then in the interactive CLI run `/mcp auth devops` (browser redirect to `http://localhost:7777/oauth/callback`).
 
 ### With OpenAI Codex (`config.toml`)
 
