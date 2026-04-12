@@ -1,33 +1,29 @@
 # MCP Protocol Implementation
 
-## Поддерживаемые транспорты
+Сервер построен на официальном пакете **[modelcontextprotocol/python-sdk](https://github.com/modelcontextprotocol/python-sdk)** (FastMCP): транспорт **Streamable HTTP** (`stateless_http` + JSON), методы протокола MCP обрабатывает SDK.
 
-### 1. HTTP JSON-RPC (Основной, рекомендуется)
+## Транспорт
 
-**Endpoint:** `POST /mcp`
+### Streamable HTTP (основной)
 
-Используется для Cursor и других MCP клиентов с поддержкой HTTP.
+**Endpoint:** `POST /mcp` (тот же путь; формат тела и заголовков определяется транспортом SDK, не «голый» одиночный JSON-RPC как в старых версиях).
 
-**Пример запроса:**
-```bash
-curl -X POST http://localhost:8000/mcp \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -d '{
-    "jsonrpc": "2.0",
-    "id": 1,
-    "method": "METHOD_NAME",
-    "params": {...}
-  }'
-```
+**Авторизация:**
 
-### 2. SSE (Server-Sent Events) - Legacy
+- Заголовок `Authorization: Bearer <API token>` — токены из `config/tokens.json` (как в Cursor / Codex).
+- Либо OAuth 2.1 через встроенный Authorization Server: метаданные **RFC 9728** (`GET /.well-known/oauth-protected-resource/mcp`), **RFC 8414** (`GET /.well-known/oauth-authorization-server`), страница входа `GET /login` (ввод того же API token). После обмена кода клиент получает **тот же** строковый токен как `access_token`.
 
-**Endpoints:** 
-- `GET /sse` - Открыть SSE соединение
-- `POST /messages?sessionId=XXX` - Отправить сообщение
+**Запуск:** `uvicorn src.server_http:create_app --factory --host 0.0.0.0 --port 8000`
 
-Поддерживается для обратной совместимости.
+Переменная **`PUBLIC_BASE_URL`** должна совпадать с URL, по которому клиенты ходят на сервер (для корректных ссылок в OAuth metadata).
+
+### Stdio
+
+`python -m src.server_stdio` — токен только из переменной **`MCP_TOKEN`** (без веб-OAuth).
+
+### Устаревшее
+
+Ранние самописные **SSE** (`/sse`, `/messages`) и REST **`/mcp/v1/*`** в `src/server.py` удалены из основного сценария; используйте Streamable HTTP.
 
 ## Методы JSON-RPC
 

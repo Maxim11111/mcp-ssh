@@ -1,4 +1,9 @@
-"""FastAPI server with MCP protocol support over HTTP/SSE."""
+"""Legacy FastAPI app (REST /mcp/v1/* and SSE streaming).
+
+Deprecated: use :mod:`src.server_http` with the official MCP SDK (Streamable HTTP + OAuth).
+This module is kept for reference and optional streaming experiments; Docker and docs
+target ``src.server_http:create_app`` with ``uvicorn --factory``.
+"""
 
 import asyncio
 import json

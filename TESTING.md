@@ -231,13 +231,14 @@ def test_create_connection():
 
 import pytest
 from fastapi.testclient import TestClient
-from src.server_http import app
+from src.server_http import build_app
 
 
 @pytest.fixture
-def client():
-    """Create test client."""
-    return TestClient(app)
+def client(monkeypatch):
+    """Create test client (set CONFIG_DIR / PUBLIC_BASE_URL before build_app)."""
+    monkeypatch.setenv("PUBLIC_BASE_URL", "http://127.0.0.1:8000")
+    return TestClient(build_app())
 
 
 def test_health_endpoint(client):

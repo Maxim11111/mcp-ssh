@@ -74,5 +74,5 @@ RUN chmod +x /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
 
 # Default command
-CMD ["uvicorn", "src.server_http:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "src.server_http:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]
 
