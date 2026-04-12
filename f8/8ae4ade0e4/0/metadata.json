@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.4.5",
+  "checkpoint_id": "f88ae4ade0e4",
+  "session_id": "5c560eda-85bf-43a0-8605-f020d5adebb6",
+  "strategy": "manual-commit",
+  "created_at": "2026-04-12T18:33:24.505826Z",
+  "branch": "update-1",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "src/fastmcp_ssh_server.py",
+    "src/mcp_oauth_provider.py",
+    "tests/test_mcp_http_integration.py"
+  ],
+  "agent": "Claude Code",
+  "turn_id": "6f6b5008af2d",
+  "token_usage": {
+    "input_tokens": 0,
+    "cache_creation_tokens": 0,
+    "cache_read_tokens": 0,
+    "output_tokens": 0,
+    "api_call_count": 0
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-04-12T18:33:24.463607Z",
+    "agent_lines": 460,
+    "human_added": 167,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 627,
+    "agent_percentage": 73.3652312599681
+  },
+  "transcript_path": ".cursor/projects/Users-admin-Projects-mcps-mcp-ssh/agent-transcripts/5c560eda-85bf-43a0-8605-f020d5adebb6/5c560eda-85bf-43a0-8605-f020d5adebb6.jsonl"
+}
