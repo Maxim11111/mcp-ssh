@@ -22,7 +22,7 @@ docker compose down
 docker compose up -d
 
 # Или запустить напрямую с hot reload
-docker exec -it mcp-ssh-server uvicorn src.server_http:app \
+docker exec -it mcp-ssh-server uvicorn src.server_http:create_app --factory \
   --host 0.0.0.0 --port 8000 --reload
 ```
 
@@ -31,7 +31,9 @@ docker exec -it mcp-ssh-server uvicorn src.server_http:app \
 ```
 mcp-ssh/
 ├── src/              # Исходный код (volume, без ребилда!)
-│   ├── server_http.py    # Основной HTTP/JSON-RPC сервер
+│   ├── server_http.py    # FastAPI + FastMCP Streamable HTTP + OAuth
+│   ├── fastmcp_ssh_server.py  # Регистрация инструментов SDK
+│   ├── mcp_oauth_provider.py  # Встроенный OAuth AS (логин по API token)
 │   ├── server_stdio.py   # Stdio сервер для альтернативного транспорта
 │   ├── mcp_handler.py    # MCP протокол логика
 │   ├── mcp_tools.py      # Инструменты для DevOps

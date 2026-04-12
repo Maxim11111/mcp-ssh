@@ -10,7 +10,8 @@ A centralized MCP (Model Context Protocol) server that enables LLM agents (Curso
 ## Features
 
 - 🔐 **Secure SSH Access** - Key-based authentication with automatic setup
-- 🌐 **Network Architecture** - HTTP/SSE transport for remote agent connectivity
+- 🌐 **Official MCP SDK** - Streamable HTTP ([modelcontextprotocol/python-sdk](https://github.com/modelcontextprotocol/python-sdk))
+- 🔏 **MCP OAuth (RFC 9728)** - Protected resource metadata + browser login for Claude Code; same API tokens as Bearer
 - 🔄 **Real-time Streaming** - Live stdout/stderr streaming via SSE
 - 🔑 **Token-based Auth** - Bearer tokens with granular permissions
 - 🛡️ **Security First** - Command validation, rate limiting, audit logging
@@ -64,21 +65,32 @@ cp config/tokens.json.example config/tokens.json
 # Add server
 python -m src.cli server add
 
-# Start server
-uvicorn src.server_http:app --host 0.0.0.0 --port 8000
+# Start server (factory loads env each process)
+uvicorn src.server_http:create_app --factory --host 0.0.0.0 --port 8000
 ```
 
 ## Architecture
 
 ```
-[Cursor/Claude/Codex Agent]
+[Cursor / Claude Code / Codex / …]
          ↓
-  HTTPS/SSE (Bearer Token)
+  HTTPS → Streamable HTTP POST /mcp (Bearer or OAuth access token)
          ↓
   [MCP SSH Server] → SSH Keys → [Your Linux Servers]
          ↓
   Audit Logs + Security Validation
 ```
+
+Set **`PUBLIC_BASE_URL`** in `.env` to the URL clients use (e.g. `https://mcp.example.com` behind TLS). The SDK publishes OAuth discovery at `/.well-known/oauth-protected-resource/mcp` and authorization server metadata at `/.well-known/oauth-authorization-server`. Browser login for MCP OAuth is at `/login` (paste the same API token you would put in `Authorization: Bearer`).
+
+## Client configuration (quick reference)
+
+| Client | Config | Notes |
+|--------|--------|--------|
+| **Cursor** | `~/.cursor/mcp.json` | `url` + `headers.Authorization: Bearer tok_…` |
+| **Claude Code** | `claude mcp add …` or project config | Use HTTP transport URL ending in `/mcp`; complete **Authenticate** with token from `cli token create`, or pre-supply Bearer if the client supports it |
+| **OpenAI Codex** | `~/.codex/config.toml` or `.codex/config.toml` | `[mcp_servers.name]` with `url = "https://host/mcp"` and `bearer_token_env_var = "MCP_SSH_TOKEN"` (or `http_headers`) — see [Codex MCP](https://developers.openai.com/codex/mcp) |
+| **Stdio** | process env | `MCP_TOKEN=tok_…` and `python -m src.server_stdio` |
 
 ## Usage Examples
 
@@ -122,6 +134,34 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
     }
   }
 }
+```
+
+### With Claude Code (CLI)
+
+After the server is reachable at `PUBLIC_BASE_URL` (HTTPS in production):
+
+```bash
+claude mcp add --transport http ssh-devops https://your-server.example.com/mcp
+```
+
+Use **Authenticate** in `/mcp` when prompted: open `/login`, paste the API token from `python -m src.cli token create`. The issued access token is the same string as your Bearer token.
+
+### With OpenAI Codex (`config.toml`)
+
+```toml
+[mcp_servers.ssh_devops]
+url = "https://your-server.example.com/mcp"
+bearer_token_env_var = "MCP_SSH_TOKEN"
+```
+
+Then `export MCP_SSH_TOKEN=tok_...` before running Codex.
+
+### Stdio (local)
+
+```bash
+export MCP_TOKEN=tok_your_token_here
+export CONFIG_DIR=./config
+python -m src.server_stdio
 ```
 
 ## Available Tools

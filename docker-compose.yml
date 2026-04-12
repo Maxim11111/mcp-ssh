@@ -32,6 +32,8 @@ services:
       - HOST=${HOST:-0.0.0.0}
       - PORT=${PORT:-8000}
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      # OAuth / RFC 9728: must match the URL clients use (set to https://your-domain in prod)
+      - PUBLIC_BASE_URL=${PUBLIC_BASE_URL:-http://127.0.0.1:8000}
       
       # Paths
       - CONFIG_DIR=${CONFIG_DIR:-/app/config}

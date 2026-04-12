@@ -30,6 +30,7 @@ setup(
         "pydantic>=2.5.0",
         "pydantic-settings>=2.1.0",
         "starlette>=0.35.0",
+        "mcp[cli]>=1.8.0,<2",
         "paramiko>=3.4.0",
         "asyncssh>=2.14.0",
         "typer>=0.9.0",
